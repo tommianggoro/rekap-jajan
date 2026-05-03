@@ -2,7 +2,7 @@
 // functions/telegram.php
 
 function sendMessage($chatId, $text) {
-    $token = "8724829105:AAFSTnIvJHg-e9CG5GFzit4T2cFoOtHdiAk";
+    $token = getenv('BOT_TOKEN');
     $url = "https://api.telegram.org/bot$token/sendMessage";
     
     $data = [
