@@ -24,10 +24,10 @@ $text    = $message['text'] ?? '';
 // Routing Perintah
 if (strpos($text, '/join') === 0) {
     // Logika join singkat
-    $stmt = $pdo->prepare("INSERT IGNORE INTO groups (chat_id, group_name) VALUES (?, ?)");
+    $stmt = $pdo->prepare("INSERT IGNORE INTO `groups` (`chat_id`, `group_name`) VALUES (?, ?)");
     $stmt->execute([$chatId, $message['chat']['title'] ?? 'Grup Rekap']);
 
-    $stmt = $pdo->prepare("INSERT IGNORE INTO members (user_id, chat_id, first_name) VALUES (?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT IGNORE INTO `members` (`user_id`, `chat_id`, `first_name`) VALUES (?, ?, ?)");
     $stmt->execute([$userId, $chatId, $firstName]);
 
     sendMessage($chatId, "🤝 *$firstName* sudah masuk dalam daftar patungan grup ini.");
