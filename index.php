@@ -23,15 +23,18 @@ $text    = $message['text'] ?? '';
 
 // Routing Perintah
 if (strpos($text, '/join') === 0) {
-    // Logika join singkat
+    // Simpan data grup
     $stmt = $pdo->prepare("INSERT IGNORE INTO `groups` (`chat_id`, `group_name`) VALUES (?, ?)");
     $stmt->execute([$chatId, $message['chat']['title'] ?? 'Grup Rekap']);
 
-    $stmt = $pdo->prepare("INSERT IGNORE INTO `members` (`user_id`, `chat_id`, `first_name`) VALUES (?, ?, ?)");
-    $stmt->execute([$userId, $chatId, $firstName]);
+    // Simpan data member lengkap dengan username
+    $username = $message['from']['username'] ?? null; // Ambil username dari Telegram
+    $stmt = $pdo->prepare("INSERT INTO `members` (`user_id`, `chat_id`, `first_name`, `username`) 
+                           VALUES (?, ?, ?, ?) 
+                           ON DUPLICATE KEY UPDATE `username` = VALUES(`username`), `first_name` = VALUES(`first_name`)");
+    $stmt->execute([$userId, $chatId, $firstName, $username]);
 
-    sendMessage($chatId, "🤝 *$firstName* sudah masuk dalam daftar patungan grup ini.");
-
+    sendMessage($chatId, "🤝 *$firstName* (@$username) berhasil terdaftar!");
 } elseif (strpos($text, '/bayar') === 0) {
     require_once 'handler/command_bayar.php';
 
