@@ -4,6 +4,12 @@
 require_once 'config/database.php';
 require_once 'functions/telegram.php';
 
+// Tambahkan ini untuk memastikan $pdo tidak null
+if (!isset($pdo)) {
+    error_log("Variabel PDO tidak ditemukan!");
+    exit;
+}
+
 $content = file_get_contents("php://input");
 $update = json_decode($content, true);
 
