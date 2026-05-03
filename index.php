@@ -40,4 +40,6 @@ if (strpos($text, '/join') === 0) {
 
 } elseif (strpos($text, '/rekap') === 0) {
     require_once 'handler/command_rekap.php';
+} elseif (strpos($text, '/selesai') === 0) {
+    require_once 'handler/command_selesai.php';
 }
