@@ -16,36 +16,39 @@ if (preg_match('/\/rekap(?:\s+#(\w+))?/', $text, $matches)) {
             exit;
         }
 
-        // 2. Ambil total pengeluaran per orang (Paid By)
+        // 2. Ambil SEMUA member grup dan total yang mereka bayar di sesi ini
+        // Kita gunakan LEFT JOIN agar member yang belum bayar (0) tetap muncul
         $stmt = $pdo->prepare("
-            SELECT m.first_name, SUM(e.amount) as total 
-            FROM `expenses` e
-            JOIN `members` m ON e.paid_by = m.user_id AND e.session_id = (
-                SELECT id FROM `sessions` WHERE chat_id = ? AND label = ? AND status = 'Active' LIMIT 1
-            )
+            SELECT 
+                m.first_name, 
+                IFNULL(SUM(e.amount), 0) as total 
+            FROM `members` m
+            LEFT JOIN `expenses` e ON m.user_id = e.paid_by AND e.session_id = ?
             WHERE m.chat_id = ?
-            GROUP BY e.paid_by
+            GROUP BY m.user_id
         ");
-        $stmt->execute([$chatId, $label, $chatId]);
+        $stmt->execute([$sessionId, $chatId]);
         $summary = $stmt->fetchAll();
 
-        // 3. Ambil daftar semua member yang ikut (untuk pembagi rata)
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM `members` WHERE `chat_id` = ?");
-        $stmt->execute([$chatId]);
-        $memberCount = $stmt->fetchColumn();
-
-        if ($memberCount == 0) exit;
-
+        // 3. Hitung Total dan Bagi Rata
         $totalGrup = 0;
-        $detailText = "";
         foreach ($summary as $row) {
             $totalGrup += $row['total'];
-            $detailText .= "👤 " . $row['first_name'] . ": Rp " . number_format($row['total'], 0, ',', '.') . "\n";
         }
 
+        $memberCount = count($summary); // Total member yang terdaftar di grup
+        if ($memberCount == 0) exit;
+        
         $perOrang = $totalGrup / $memberCount;
 
-        // 4. Susun Pesan Rekap
+        // 4. Susun Detail Pengeluaran (Hanya tampilkan yang bayar > 0 agar ringkas)
+        $detailText = "";
+        foreach ($summary as $row) {
+            if ($row['total'] > 0) {
+                $detailText .= "👤 " . $row['first_name'] . ": Rp " . number_format($row['total'], 0, ',', '.') . "\n";
+            }
+        }
+
         $msg = "📊 *REKAP PENGELUARAN #$label*\n";
         $msg .= "--------------------------------\n";
         $msg .= $detailText;
@@ -55,14 +58,15 @@ if (preg_match('/\/rekap(?:\s+#(\w+))?/', $text, $matches)) {
         $msg .= "👉 Rp " . number_format($perOrang, 0, ',', '.') . " / orang\n\n";
         $msg .= "💡 _Gunakan /selesai #$label untuk menutup sesi ini._";
 
+        // 5. Logika Settlement (Sekarang pasti mendeteksi orang yang bayar 0)
         $debtors = [];
         $creditors = [];
 
         foreach ($summary as $row) {
-            $balance = $row['total'] - $perOrang;
-            if ($balance < 0) {
+            $balance = $row['total'] - $perOrang; // Jika total bayar 0, maka balance -40.450
+            if ($balance < -0.01) { // Gunakan margin kecil untuk menghindari error float
                 $debtors[$row['first_name']] = abs($balance);
-            } elseif ($balance > 0) {
+            } elseif ($balance > 0.01) {
                 $creditors[$row['first_name']] = $balance;
             }
         }
