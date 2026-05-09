@@ -15,7 +15,7 @@ if (preg_match('/\/history\s+#(\w+)/', $text, $matches)) {
             FROM `expenses` e
             JOIN `members` m ON e.paid_by = m.user_id
             JOIN `sessions` s ON e.session_id = s.id
-            WHERE s.label = ? AND m.chat_id = ?
+            WHERE s.label = ? AND m.chat_id = ? AND s.status = 'Active'
             ORDER BY e.created_at DESC
         ");
         $stmt->execute([$label, $chatId]);

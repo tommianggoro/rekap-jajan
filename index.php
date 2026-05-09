@@ -44,4 +44,8 @@ if (strpos($text, '/join') === 0) {
     require_once 'handler/command_selesai.php';
 } elseif (strpos($text, '/history') === 0) {
     require_once 'handler/command_history.php';
+} elseif (strpos($text, '/edit') === 0) {
+    require_once 'handler/command_edit.php';
+} elseif (strpos($text, '/cicil') === 0) {
+    require_once 'handler/command_cicil.php';
 }
