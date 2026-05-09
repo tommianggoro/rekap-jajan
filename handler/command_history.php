@@ -1,8 +1,9 @@
 <?php
 // handler/command_history.php
 // Regex: /history #[label]
-if (preg_match('/\/history\s+#(\w+)/', $text, $matches)) {
-    $label = $matches[1];
+if (preg_match('/\/history(?:\s+#(\w+))?/', $text, $matches)) {
+    // Jika #label tidak diisi, otomatis menggunakan 'umum'
+    $label = $matches[1] ?? 'umum';
     try {
         // Ambil riwayat pengeluaran dari semua sesi dengan label tersebut
         $stmt = $pdo->prepare("

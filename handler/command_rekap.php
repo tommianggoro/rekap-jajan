@@ -1,12 +1,11 @@
 <?php
 // handler/command_rekap.php
 
-// Regex: /rekap #[label]
 if (preg_match('/\/rekap(?:\s+#(\w+))?/', $text, $matches)) {
     $label = $matches[1] ?? 'umum';
 
     try {
-        // 1. Cari Session ID yang aktif berdasarkan label
+        // 1. Cari Session ID aktif
         $stmt = $pdo->prepare("SELECT id FROM `sessions` WHERE `chat_id` = ? AND `label` = ? AND `status` = 'Active' LIMIT 1");
         $stmt->execute([$chatId, $label]);
         $sessionId = $stmt->fetchColumn();
@@ -16,64 +15,81 @@ if (preg_match('/\/rekap(?:\s+#(\w+))?/', $text, $matches)) {
             exit;
         }
 
-        // 2. Ambil SEMUA member grup dan total yang mereka bayar di sesi ini
-        // Kita gunakan LEFT JOIN agar member yang belum bayar (0) tetap muncul
+        // 2. Ambil total yang DIBAYARKAN (pengeluaran) oleh masing-masing orang
         $stmt = $pdo->prepare("
-            SELECT 
-                m.first_name, 
-                IFNULL(SUM(e.amount), 0) as total 
+            SELECT m.user_id, m.first_name, IFNULL(SUM(e.amount), 0) as total_spent
             FROM `members` m
             LEFT JOIN `expenses` e ON m.user_id = e.paid_by AND e.session_id = ?
             WHERE m.chat_id = ?
             GROUP BY m.user_id
         ");
         $stmt->execute([$sessionId, $chatId]);
-        $summary = $stmt->fetchAll();
+        $spentSummary = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 3. Hitung Total dan Bagi Rata
+        // 3. Ambil total CICILAN yang sudah dilakukan (siapa bayar ke siapa)
+        $stmt = $pdo->prepare("
+            SELECT from_user_id, to_user_id, SUM(amount) as total_payment
+            FROM `payments`
+            WHERE session_id = ?
+            GROUP BY from_user_id, to_user_id
+        ");
+        $stmt->execute([$sessionId]);
+        $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 4. Hitung Total Grup & Bagi Rata
         $totalGrup = 0;
-        foreach ($summary as $row) {
-            $totalGrup += $row['total'];
+        foreach ($spentSummary as $row) {
+            $totalGrup += $row['total_spent'];
         }
+        $memberCount = count($spentSummary);
+        $perOrang = ($memberCount > 0) ? ($totalGrup / $memberCount) : 0;
 
-        $memberCount = count($summary); // Total member yang terdaftar di grup
-        if ($memberCount == 0) exit;
-        
-        $perOrang = $totalGrup / $memberCount;
-
-        // 4. Susun Detail Pengeluaran (Hanya tampilkan yang bayar > 0 agar ringkas)
-        $detailText = "";
-        foreach ($summary as $row) {
-            if ($row['total'] > 0) {
-                $detailText .= "👤 " . $row['first_name'] . ": Rp " . number_format($row['total'], 0, ',', '.') . "\n";
-            }
-        }
-
+        // 5. Susun Pesan
         $msg = "📊 *REKAP PENGELUARAN #$label*\n";
         $msg .= "--------------------------------\n";
-        $msg .= $detailText;
+        foreach ($spentSummary as $row) {
+            if ($row['total_spent'] > 0) {
+                $msg .= "👤 " . $row['first_name'] . ": Rp " . number_format($row['total_spent'], 0, ',', '.') . "\n";
+            }
+        }
         $msg .= "--------------------------------\n";
+        $msg .= "👥 *Total Anggota:* $memberCount\n";
         $msg .= "💰 *Total Sesi:* Rp " . number_format($totalGrup, 0, ',', '.') . "\n";
-        $msg .= "👥 *Bagi Rata ($memberCount orang):*\n";
-        $msg .= "👉 Rp " . number_format($perOrang, 0, ',', '.') . " / orang\n\n";
-        $msg .= "💡 _Gunakan /selesai #$label untuk menutup sesi ini._";
+        $msg .= "👥 *Bagi Rata:* Rp " . number_format($perOrang, 0, ',', '.') . " / org\n\n";
 
-        // 5. Logika Settlement (Sekarang pasti mendeteksi orang yang bayar 0)
-        $debtors = [];
-        $creditors = [];
+        // 6. Logika Settlement Real-Time (Dikurangi Cicilan)
+        $balances = [];
+        foreach ($spentSummary as $row) {
+            // Saldo awal: apa yang sudah dibayar - beban bagi rata
+            $balances[$row['user_id']] = [
+                'name' => $row['first_name'],
+                'amount' => $row['total_spent'] - $perOrang
+            ];
+        }
 
-        foreach ($summary as $row) {
-            $balance = $row['total'] - $perOrang; // Jika total bayar 0, maka balance -40.450
-            if ($balance < -0.01) { // Gunakan margin kecil untuk menghindari error float
-                $debtors[$row['first_name']] = abs($balance);
-            } elseif ($balance > 0.01) {
-                $creditors[$row['first_name']] = $balance;
+        // Sesuaikan saldo dengan data cicilan dari tabel payments
+        foreach ($payments as $p) {
+            if (isset($balances[$p['from_user_id']])) {
+                $balances[$p['from_user_id']]['amount'] += $p['total_payment'];
+            }
+            if (isset($balances[$p['to_user_id']])) {
+                $balances[$p['to_user_id']]['amount'] -= $p['total_payment'];
             }
         }
 
-        $settlementText = "\n💸 *Rencana Pelunasan:*\n";
+        $debtors = [];
+        $creditors = [];
+        foreach ($balances as $id => $data) {
+            if ($data['amount'] < -1) { // Hutang
+                $debtors[$data['name']] = abs($data['amount']);
+            } elseif ($data['amount'] > 1) { // Nombok
+                $creditors[$data['name']] = $data['amount'];
+            }
+        }
+
+        $settlementText = "💸 *Sisa Hutang Pelunasan:*\n";
         if (empty($debtors) && empty($creditors)) {
-            $settlementText .= "Semua sudah pas! Tidak ada hutang.\n";
+            $settlementText .= "Semua sudah lunas! ✅\n";
         } else {
             foreach ($debtors as $debtor => $amount) {
                 foreach ($creditors as $creditor => $creditAmount) {
@@ -81,20 +97,18 @@ if (preg_match('/\/rekap(?:\s+#(\w+))?/', $text, $matches)) {
                     if ($creditAmount <= 0) continue;
 
                     $transfer = min($amount, $creditAmount);
-                    $settlementText .= "🔸 $debtor transfer ke $creditor: Rp " . number_format($transfer, 0, ',', '.') . "\n";
+                    $settlementText .= "🔸 $debtor ➡️ $creditor: Rp " . number_format($transfer, 0, ',', '.') . "\n";
                     
                     $amount -= $transfer;
                     $creditors[$creditor] -= $transfer;
                 }
             }
         }
-
-        $msg .= $settlementText; // Gabungkan ke pesan utama
-
+        
+        $msg .= $settlementText;
         sendMessage($chatId, $msg);
 
     } catch (Exception $e) {
-        error_log("REKAP ERROR: " . $e->getMessage());
-        sendMessage($chatId, "❌ Gagal menarik data rekap.");
+        sendMessage($chatId, "❌ Error Rekap: " . $e->getMessage());
     }
 }
