@@ -48,4 +48,11 @@ if (strpos($text, '/join') === 0) {
     require_once 'handler/command_edit.php';
 } elseif (strpos($text, '/cicil') === 0) {
     require_once 'handler/command_cicil.php';
+} elseif (strpos($text, '/hapus') === 0) {
+    require_once 'handler/command_hapus.php';
+} elseif (strpos($text, '/help') === 0 || strpos($text, '/start') === 0) {
+    require_once 'handler/command_help.php';
+} else {
+    // Balas dengan pesan bantuan jika perintah tidak dikenali
+    sendMessage($chatId, "❓ Perintah tidak dikenali. Ketik /help untuk daftar perintah yang tersedia.");
 }
