@@ -54,5 +54,5 @@ if (strpos($text, '/join') === 0) {
     require_once 'handler/command_help.php';
 } else {
     // Balas dengan pesan bantuan jika perintah tidak dikenali
-    sendMessage($chatId, "❓ Perintah tidak dikenali. Ketik /help untuk daftar perintah yang tersedia.");
+    // sendMessage($chatId, "❓ Perintah tidak dikenali. Ketik /help untuk daftar perintah yang tersedia.");
 }
