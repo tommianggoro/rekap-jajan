@@ -4,7 +4,8 @@
 // Regex: /bayar [nominal] [keterangan] #[label] dan/atau @username
 // Contoh: /bayar 50000 makan siang #kantor @budi
 // if (preg_match('/\/bayar\s+(\d+)\s+(.+?)(?:\s+#(\w+))?(?:\s+@(\w+))?$/', $text, $matches)) {
-if (preg_match('/\/bayar\s+(\d+)\s+([^\s#@]+)(?:\s+#(\w+))?(?:\s+@([a-zA-Z0-9_]+))?$/', $text, $matches)) {
+// if (preg_match('/\/bayar\s+(\d+)\s+([^\s#@]+)(?:\s+#(\w+))?(?:\s+@([a-zA-Z0-9_]+))?$/', $text, $matches)) {
+if (preg_match('/\/bayar\s+(\d+)\s+(.+?)(?:\s+#(\w+))?(?:\s+@([a-zA-Z0-9_]+))?$/', $text, $matches)) {
     $amount      = $matches[1];
     $description = trim($matches[2]);
     // $label       = $matches[3] ?? 'umum';
