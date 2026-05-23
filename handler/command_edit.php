@@ -11,7 +11,7 @@ if (!isset($message['reply_to_message'])) {
 if (preg_match('/\/edit\s+(\d+)\s+(.+?)(?:\s+#(\w+))?(?:\s+@(\w+))?$/', $text, $matches)) {
     $newAmount      = $matches[1];
     $newDescription = trim($matches[2]);
-    $newLabel       = $matches[3] ?? null;
+    $newLabel       = $matches[3] ?? 'umum';
     $newMention     = $matches[4] ?? null;
 
     try {
