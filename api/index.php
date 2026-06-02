@@ -23,7 +23,6 @@ if (file_exists(__DIR__ . '/../.env')) {
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../functions/telegram.php';
-
 // Tambahkan ini untuk memastikan $pdo tidak null
 if (!isset($pdo)) {
     error_log("Variabel PDO tidak ditemukan!");
@@ -56,16 +55,23 @@ if (strpos($text, '/join') === 0) {
 
     sendMessage($chatId, "🤝 *$firstName* (@$username) berhasil terdaftar!");
 } elseif (strpos($text, '/bayar') === 0) {
-    require_once 'handler/command_bayar.php';
+    require_once __DIR__ . '/../handler/command_bayar.php';
 
 } elseif (strpos($text, '/rekap') === 0) {
-    require_once 'handler/command_rekap.php';
+    require_once __DIR__ . '/../handler/command_rekap.php';
 } elseif (strpos($text, '/selesai') === 0) {
-    require_once 'handler/command_selesai.php';
+    require_once __DIR__ . '/../handler/command_selesai.php';
 } elseif (strpos($text, '/history') === 0) {
-    require_once 'handler/command_history.php';
+    require_once __DIR__ . '/../handler/command_history.php';
 } elseif (strpos($text, '/edit') === 0) {
-    require_once 'handler/command_edit.php';
+    require_once __DIR__ . '/../handler/command_edit.php';
 } elseif (strpos($text, '/cicil') === 0) {
-    require_once 'handler/command_cicil.php';
+    require_once __DIR__ . '/../handler/command_cicil.php';
+} elseif (strpos($text, '/hapus') === 0) {
+    require_once __DIR__ . '/../handler/command_hapus.php';
+} elseif (strpos($text, '/help') === 0 || strpos($text, '/start') === 0) {
+    require_once __DIR__ . '/../handler/command_help.php';
+} else {
+    // Balas dengan pesan bantuan jika perintah tidak dikenali
+    // sendMessage($chatId, "❓ Perintah tidak dikenali. Ketik /help untuk daftar perintah yang tersedia.");
 }
