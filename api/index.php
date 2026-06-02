@@ -21,8 +21,8 @@ if (file_exists(__DIR__ . '/../.env')) {
 }
 // --- END BACA FILE .ENV MANUAL ---
 
-require_once '../config/database.php';
-require_once '../functions/telegram.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../functions/telegram.php';
 
 // Tambahkan ini untuk memastikan $pdo tidak null
 if (!isset($pdo)) {
