@@ -16,7 +16,8 @@ try {
     $stmt->execute();
     
     // Output sukses untuk log Vercel
-    echo "Sukses: Database Aiven berhasil dipancing agar tetap bangun!";
+    error_log("Sukses: Database Aiven berhasil dipancing agar tetap bangun!");
+    echo "OK";
 } catch (PDOException $e) {
     // Jika gagal, log error akan tercatat di Vercel Logs
     header("HTTP/1.1 500 Internal Server Error");
