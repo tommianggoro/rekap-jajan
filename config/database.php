@@ -7,7 +7,6 @@ $db   = getenv('MYSQLDATABASE');
 $user = getenv('MYSQLUSER');
 $pass = getenv('MYSQLPASSWORD');
 $port = getenv('MYSQLPORT') ?: '3306'; // Default ke 3306 jika kosong
-
 // Jika $host kosong, PHP akan mencoba mencari socket lokal dan menyebabkan error tersebut
 if (!$host) {
     error_log("DATABASE ERROR: Variable MYSQLHOST tidak ditemukan di Environment Variables.");
