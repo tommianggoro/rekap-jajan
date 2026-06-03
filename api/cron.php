@@ -21,5 +21,7 @@ try {
 } catch (PDOException $e) {
     // Jika gagal, log error akan tercatat di Vercel Logs
     header("HTTP/1.1 500 Internal Server Error");
-    echo "Gagal memancing database: " . $e->getMessage();
+    $msg = "Gagal memancing database: " . $e->getMessage();
+    error_log($msg);
+    echo $msg;
 }
