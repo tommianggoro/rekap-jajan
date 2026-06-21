@@ -58,7 +58,11 @@ if (preg_match('/\/bayar\s+(\d+)\s+(.+?)(?:\s+#(\w+))?(?:\s+@([a-zA-Z0-9_]+))?$/
         $stmt = $pdo->prepare("INSERT INTO `expenses` (`session_id`, `paid_by`, `recorded_by`, `amount`, `description`) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$sessionId, $paidBy, $userId, $amount, $description]);
 
+        // AMBIL ID TRANSAKSI YANG BARU TERBENTUK
+        $expenseId = $pdo->lastInsertId();
+
         $msg = "✅ *Tercatat!*\n";
+        $msg .= "🆔 ID Pengeluaran: $expenseId\n";
         $msg .= "💰 Rp " . number_format($amount, 0, ',', '.') . "\n";
         $msg .= "👤 Pembayar: *$payerName*\n";
         $msg .= "✍️ Dicatat oleh: $firstName\n";
