@@ -8,6 +8,7 @@ if (preg_match('/\/history(?:\s+#(\w+))?/', $text, $matches)) {
         // Ambil riwayat pengeluaran dari semua sesi dengan label tersebut
         $stmt = $pdo->prepare("
             SELECT
+            e.id,
             e.amount,
             e.description,
             e.created_at,
@@ -31,7 +32,7 @@ if (preg_match('/\/history(?:\s+#(\w+))?/', $text, $matches)) {
             $totalHistory += $row['amount'];
             $date = date('d/m/y', strtotime($row['created_at']));
             $statusIcon = ($row['status'] == 'Active') ? "🟢" : "⚪";
-            $listText .= "$statusIcon [$date] " . $row['first_name'] . ": Rp " .
+            $listText .= "ID Pengeluaran: " . $row['id'] . " $statusIcon [$date] " . $row['first_name'] . ": Rp " .
             number_format($row['amount'], 0, ',', '.') . " (" . $row['description'] . ")\n";
         }
         $msg = "📜 *RIWAYAT TRANSAKSI #$label*\n";
