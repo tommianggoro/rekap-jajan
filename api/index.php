@@ -71,6 +71,8 @@ if (strpos($text, '/join') === 0) {
     require_once __DIR__ . '/../handler/command_hapus.php';
 } elseif (strpos($text, '/help') === 0 || strpos($text, '/start') === 0) {
     require_once __DIR__ . '/../handler/command_help.php';
+} elseif(strpos($text, '/delid') === 0){
+    require_once __DIR__ . '/../handler/command_delete_by_id.php';
 } else {
     // Balas dengan pesan bantuan jika perintah tidak dikenali
     // sendMessage($chatId, "❓ Perintah tidak dikenali. Ketik /help untuk daftar perintah yang tersedia.");
