@@ -46,4 +46,23 @@ class SessionRepository
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getSessionById(int $id)
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                id,
+                chat_id,
+                label,
+                created_at,
+                status
+            FROM sessions
+            WHERE id = ?
+            LIMIT 1
+        ");
+
+        $stmt->execute([$id]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }

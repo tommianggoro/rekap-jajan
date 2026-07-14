@@ -144,4 +144,46 @@ class ExpenseService
             'settlements' => $settlements
         ]);
     }
+
+    public function getRecapBySessionId(int $sessionId): array
+    {
+        $members = $this->expenseRepository->getSpentSummaryBySession($sessionId);
+
+        if (empty($members)) {
+            return Response::error('Data tidak ditemukan.');
+        }
+
+        $totalExpense = 0;
+
+        foreach ($members as $member) {
+            $totalExpense += $member['total_spent'];
+        }
+
+        $memberCount = count($members);
+
+        $perPerson = $memberCount > 0
+            ? $totalExpense / $memberCount
+            : 0;
+        
+        foreach ($members as &$member) {
+
+            $member['balance'] =
+                (float)$member['total_spent'] - $perPerson;
+
+            $member['status'] =
+                $member['balance'] >= 0
+                    ? 'creditor'
+                    : 'debtor';
+
+        }
+
+        unset($member);
+
+        return Response::success([
+            'total_expense' => $totalExpense,
+            'member_count'  => $memberCount,
+            'per_person'    => $perPerson,
+            'members'       => $members
+        ]);
+    }
 }

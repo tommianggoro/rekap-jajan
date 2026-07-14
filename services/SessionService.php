@@ -18,4 +18,15 @@ class SessionService
 
         return Response::success($sessions);
     }
+
+    public function getSessionDetail(int $id): array
+    {
+        $session = $this->sessionRepository->getSessionById($id);
+
+        if (!$session) {
+            return Response::error('Session tidak ditemukan.');
+        }
+
+        return Response::success($session);
+    }
 }

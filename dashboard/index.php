@@ -47,9 +47,39 @@ require_once __DIR__ . '/../bootstrap.php';
 
             <hr>
 
-            <h5>Session Aktif</h5>
+            <h5 class="mt-4">Session Aktif</h5>
 
-            <pre id="session-list">Loading...</pre>
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>ID</th>
+                        <th>Label</th>
+                        <th>Status</th>
+                        <th>Dibuat</th>
+                        <th width="120">Aksi</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="session-list">
+
+                    <tr>
+
+                        <td colspan="4" class="text-center">
+
+                            Loading...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
 
         </div>
 
