@@ -179,11 +179,101 @@ class ExpenseService
 
         unset($member);
 
+        $settlements = $this->calculateSettlement($members);
+
         return Response::success([
             'total_expense' => $totalExpense,
             'member_count'  => $memberCount,
             'per_person'    => $perPerson,
-            'members'       => $members
+            'members'       => $members,
+            'settlements'   => $settlements
         ]);
+    }
+
+    private function calculateSettlement(array $members): array
+    {
+        $creditors = [];
+        $debtors = [];
+
+        foreach ($members as $member) {
+
+            $balance = (float) $member['balance'];
+
+            if ($balance > 0) {
+
+                $creditors[] = [
+                    'name' => $member['first_name'],
+                    'balance' => $balance
+                ];
+
+            } elseif ($balance < 0) {
+
+                $debtors[] = [
+                    'name' => $member['first_name'],
+                    'balance' => abs($balance)
+                ];
+
+            }
+
+        }
+
+        $settlements = [];
+
+        $i = 0;
+        $j = 0;
+
+        while (
+            $i < count($debtors) &&
+            $j < count($creditors)
+        ) {
+
+            $amount = min(
+                $debtors[$i]['balance'],
+                $creditors[$j]['balance']
+            );
+
+            $settlements[] = [
+
+                'from' => $debtors[$i]['name'],
+
+                'to' => $creditors[$j]['name'],
+
+                'amount' => $amount
+
+            ];
+
+            $debtors[$i]['balance'] -= $amount;
+            $creditors[$j]['balance'] -= $amount;
+
+            if ($debtors[$i]['balance'] < 0.01) {
+                $i++;
+            }
+
+            if ($creditors[$j]['balance'] < 0.01) {
+                $j++;
+            }
+
+        }
+
+        return $settlements;
+    }
+
+    public function getHistoryBySessionId(int $sessionId): array
+    {
+        $history = $this->expenseRepository->getHistoryBySessionId($sessionId);
+
+        return Response::success($history);
+    }
+
+    public function getDashboardSummary(): array
+    {
+        $summary = $this->expenseRepository->getDashboardSummary();
+
+        $summary['total_session'] = (int) $summary['total_session'];
+        $summary['active_session'] = (int) $summary['active_session'];
+        $summary['closed_session'] = (int) $summary['closed_session'];
+        $summary['total_expense'] = (float) $summary['total_expense'];
+
+        return Response::success($summary);
     }
 }

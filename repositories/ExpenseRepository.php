@@ -87,4 +87,50 @@ class ExpenseRepository
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getHistoryBySessionId(int $sessionId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                e.id,
+                e.description,
+                e.amount,
+                e.created_at,
+                m.first_name AS paid_by
+            FROM expenses e
+            JOIN members m
+                ON e.paid_by = m.user_id
+            WHERE e.session_id = ?
+            ORDER BY e.created_at DESC
+        ");
+
+        $stmt->execute([$sessionId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getDashboardSummary(): array
+    {
+        $stmt = $this->pdo->query("
+            SELECT
+                COUNT(*) AS total_session,
+                SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) AS active_session,
+                SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) AS closed_session
+            FROM sessions
+        ");
+
+        $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $stmt = $this->pdo->query("
+            SELECT
+                COALESCE(SUM(amount), 0) AS total_expense
+            FROM expenses
+        ");
+
+        $expense = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $summary['total_expense'] = $expense['total_expense'];
+
+        return $summary;
+    }
 }

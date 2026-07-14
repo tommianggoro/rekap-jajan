@@ -16,6 +16,7 @@ $id = (int) ($_GET['id'] ?? 0);
     <title>Detail Session</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/app.css">
 
 </head>
 
@@ -30,6 +31,38 @@ $id = (int) ($_GET['id'] ?? 0);
                 <h3>📋 Detail Session</h3>
 
                 <hr>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <div>
+
+                        <h2 id="session-label" class="mb-1">
+                            Loading...
+                        </h2>
+
+                        <div>
+
+                            <span id="session-status" class="badge bg-secondary">
+                                Loading...
+                            </span>
+
+                            <span class="text-muted ms-2" id="session-created">
+                                Loading...
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <a href="index.php" class="btn btn-outline-secondary">
+                            ← Kembali
+                        </a>
+
+                    </div>
+
+                </div>
 
                 <div class="row mt-4">
 
@@ -97,98 +130,133 @@ $id = (int) ($_GET['id'] ?? 0);
 
                 <div class="card shadow-sm mt-4">
 
-                        <div class="card-header">
+                    <div class="card-header">
 
-                            <strong>👥 Ringkasan Member</strong>
-
-                        </div>
-
-                        <div class="card-body p-0">
-
-                            <table class="table table-striped table-hover mb-0">
-
-                                <thead>
-
-                                    <tr>
-                                        <th>Nama</th>
-                                        <th class="text-end">Pengeluaran</th>
-                                        <th class="text-end">Selisih</th>
-                                        <th class="text-center">Status</th>
-                                    </tr>
-
-                                </thead>
-
-                                <tbody id="member-list">
-
-                                    <tr>
-
-                                        <td colspan="2" class="text-center">
-
-                                            Loading...
-
-                                        </td>
-
-                                    </tr>
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
+                        <strong>👥 Ringkasan Member</strong>
 
                     </div>
 
-                <p>
+                    <div class="card-body p-0">
 
-                <strong>ID Session :</strong>
+                        <table class="table table-striped table-hover mb-0">
 
-                <span id="session-id">
+                            <thead>
 
-                    <?= $id ?>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th class="text-end">Pengeluaran</th>
+                                    <th class="text-end">Selisih</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
 
-                </span>
+                            </thead>
 
-            </p>
+                            <tbody id="member-list">
 
-            <p>
+                                <tr>
 
-                <strong>Label :</strong>
+                                    <td colspan="2" class="text-center">
 
-                <span id="session-label">
+                                        Loading...
 
-                    Loading...
+                                    </td>
 
-                </span>
+                                </tr>
 
-            </p>
+                            </tbody>
 
-            <p>
+                        </table>
 
-                <strong>Status :</strong>
+                    </div>
 
-                <span id="session-status">
+                </div>
 
-                    Loading...
+                <div class="card shadow-sm mt-4">
 
-                </span>
+                    <div class="card-header">
 
-            </p>
+                        <strong>💸 Settlement</strong>
 
-            <p>
+                    </div>
 
-                <strong>Dibuat :</strong>
+                    <div class="card-body p-0">
 
-                <span id="session-created">
+                        <table class="table table-striped table-hover mb-0">
 
-                    Loading...
+                            <thead>
 
-                </span>
+                                <tr>
 
-            </p>
+                                    <th>Dari</th>
+                                    <th>Kepada</th>
+                                    <th class="text-end">Nominal</th>
 
-                <a href="index.php" class="btn btn-secondary">
-                    ← Kembali
-                </a>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="settlement-list">
+
+                                <tr>
+
+                                    <td colspan="3" class="text-center">
+
+                                        Loading...
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <div class="card shadow-sm mt-4">
+
+                    <div class="card-header">
+
+                        <strong>📝 Riwayat Transaksi</strong>
+
+                    </div>
+
+                    <div class="card-body p-0">
+
+                        <table class="table table-striped table-hover mb-0">
+
+                            <thead>
+
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Deskripsi</th>
+                                    <th>Dibayar Oleh</th>
+                                    <th class="text-end">Nominal</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="history-list">
+
+                                <tr>
+
+                                    <td colspan="4" class="text-center">
+
+                                        Loading...
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -197,123 +265,14 @@ $id = (int) ($_GET['id'] ?? 0);
     </div>
 
     <script>
-
-        const sessionId = <?= $id ?>;
-
-        async function loadSession() {
-
-            const response = await fetch(
-                '../api/dashboard/session_detail.php?id=' + sessionId
-            );
-
-            const result = await response.json();
-
-            if (!result.success) {
-
-                alert(result.message);
-
-                return;
-
-            }
-
-            const session = result.data;
-
-            document.getElementById('session-label').innerHTML =
-                session.label;
-
-            document.getElementById('session-status').innerHTML =
-                session.status;
-
-            document.getElementById('session-created').innerHTML =
-                session.created_at;
-
-        }
-
-        async function loadRecap() {
-
-            const response = await fetch(
-                '../api/dashboard/recap.php?id=' + sessionId
-            );
-
-            const result = await response.json();
-
-            if (!result.success) {
-                return;
-            }
-
-            const recap = result.data;
-
-            document.getElementById('total-expense').textContent =
-                formatRupiah(recap.total_expense);
-
-            document.getElementById('member-count').textContent =
-                recap.member_count;
-
-            document.getElementById('per-person').textContent =
-                formatRupiah(recap.per_person);
-
-            const tbody = document.getElementById('member-list');
-
-            tbody.innerHTML = '';
-
-            recap.members.forEach(member => {
-
-                const badge = member.status === 'creditor'
-                    ? '<span class="badge bg-success">Menagih</span>'
-                    : '<span class="badge bg-danger">Membayar</span>';
-
-                const balance = Number(member.balance);
-
-                const balanceText =
-                    (balance >= 0 ? '+' : '-') +
-                    formatRupiah(Math.abs(balance));
-
-                tbody.innerHTML += `
-
-                    <tr>
-
-                        <td>${member.first_name}</td>
-
-                        <td class="text-end">
-
-                            ${formatRupiah(member.total_spent)}
-
-                        </td>
-
-                        <td class="text-end">
-
-                            ${balanceText}
-
-                        </td>
-
-                        <td class="text-center">
-
-                            ${badge}
-
-                        </td>
-
-                    </tr>
-
-                `;
-
-            });
-
-        }
-
-        function formatRupiah(number) {
-
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(number);
-
-        }
-
-        loadSession();
-        loadRecap();
-
+        window.APP = {
+            sessionId: <?= $id ?>,
+            apiBase: '../api/dashboard'
+        };
     </script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/detail.js"></script>
 </body>
 
 </html>

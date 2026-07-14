@@ -47,6 +47,101 @@ require_once __DIR__ . '/../bootstrap.php';
 
             <hr>
 
+            <div class="row mb-4">
+
+                <div class="col-md-3">
+
+                    <div class="card shadow-sm">
+
+                        <div class="card-body text-center">
+
+                            <h6 class="text-muted mb-2">
+                                Total Session
+                            </h6>
+
+                            <h2 id="total-session">
+                                ...
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card shadow-sm">
+
+                        <div class="card-body text-center">
+
+                            <h6 class="text-muted mb-2">
+                                Session Aktif
+                            </h6>
+
+                            <h2 class="text-primary"
+                                id="active-session">
+
+                                ...
+
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card shadow-sm">
+
+                        <div class="card-body text-center">
+
+                            <h6 class="text-muted mb-2">
+                                Session Selesai
+                            </h6>
+
+                            <h2 class="text-success"
+                                id="closed-session">
+
+                                ...
+
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card shadow-sm">
+
+                        <div class="card-body text-center">
+
+                            <h6 class="text-muted mb-2">
+                                Total Pengeluaran
+                            </h6>
+
+                            <h4 class="text-danger"
+                                id="total-expense">
+
+                                ...
+
+                            </h4>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr>
+
             <h5 class="mt-4">Session Aktif</h5>
 
             <table class="table table-bordered table-hover align-middle">
@@ -87,10 +182,17 @@ require_once __DIR__ . '/../bootstrap.php';
 
 </div>
 
-<script src="assets/js/app.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+window.APP = {
+    apiBase: '../api/dashboard'
+};
+</script>
+
+<script src="assets/js/app.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/dashboard.js"></script>
 </body>
 
 </html>

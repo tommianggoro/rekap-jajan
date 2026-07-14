@@ -10,20 +10,8 @@ require_once __DIR__ . '/../../services/ExpenseService.php';
 
 header('Content-Type: application/json');
 
-$id = (int) ($_GET['id'] ?? 0);
-
-if ($id <= 0) {
-
-    echo json_encode(
-        Response::error('Parameter id wajib diisi.')
-    );
-
-    exit;
-
-}
-
 $expenseService = new ExpenseService($pdo);
 
 echo json_encode(
-    $expenseService->getHistoryBySessionId($id)
+    $expenseService->getDashboardSummary()
 );
