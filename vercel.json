@@ -5,13 +5,17 @@
     },
     "api/cron.php": {
       "runtime": "vercel-php@0.7.1"
+    },
+    "index.php": {
+      "runtime": "vercel-php@0.7.1"
     }
   },
   "routes": [
     { "src": "/api/webhook.php", "dest": "/api/webhook.php" },
     { "src": "/api/cron.php", "dest": "/api/cron.php" },
     { "src": "/dashboard/(.*)", "dest": "/dashboard/$1" },
-    { "src": "/$", "status": 301, "headers": { "Location": "/dashboard/" } }
+    { "src": "/$", "status": 301, "headers": { "Location": "/dashboard/" } },
+    { "src": "/index.php", "dest": "/index.php" }
   ],
   "crons": [
     {
