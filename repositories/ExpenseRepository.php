@@ -137,12 +137,15 @@ class ExpenseRepository
     public function getSpentSummaryByLabel(string $label): array
     {
         $stmt = $this->pdo->prepare("
-            SELECT u.id as user_id, u.first_name, SUM(e.amount) as total_spent 
+            SELECT 
+                m.user_id, 
+                m.first_name, 
+                SUM(e.amount) as total_spent 
             FROM expenses e
             JOIN sessions s ON e.session_id = s.id
-            JOIN users u ON e.user_id = u.id
+            JOIN members m ON e.paid_by = m.user_id AND s.chat_id = m.chat_id
             WHERE s.label = :label
-            GROUP BY u.id, u.first_name
+            GROUP BY m.user_id, m.first_name
         ");
 
         $stmt->execute(['label' => $label]);
@@ -153,10 +156,16 @@ class ExpenseRepository
     public function getHistoryByLabelName(string $label): array
     {
         $stmt = $this->pdo->prepare("
-            SELECT e.*, u.first_name as paid_by 
+            SELECT 
+                e.id,
+                e.session_id,
+                e.amount,
+                e.description,
+                e.created_at,
+                m.first_name as paid_by_name
             FROM expenses e
             JOIN sessions s ON e.session_id = s.id
-            JOIN users u ON e.user_id = u.id
+            JOIN members m ON e.paid_by = m.user_id AND s.chat_id = m.chat_id
             WHERE s.label = :label
             ORDER BY e.created_at DESC
         ");
