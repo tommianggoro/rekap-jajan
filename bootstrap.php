@@ -28,3 +28,13 @@ if (file_exists(__DIR__ . '/.env')) {
 // DATABASE
 // ========================================
 require_once __DIR__ . '/config/database.php';
+
+date_default_timezone_set('Asia/Jakarta');
+
+mb_internal_encoding('UTF-8');
+
+ini_set('default_charset', 'UTF-8');
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}

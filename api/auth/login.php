@@ -2,8 +2,6 @@
 
 require_once __DIR__ . '/../../bootstrap.php';
 
-session_start();
-
 require_once __DIR__ . '/../../helpers/Response.php';
 
 require_once __DIR__ . '/../../repositories/UserRepository.php';
@@ -37,5 +35,5 @@ if ($result['success']) {
     $_SESSION['user'] = $result['data'];
 
 }
-
+error_log('SESSION LOGIN: ' . print_r($_SESSION, true));
 echo json_encode($result);

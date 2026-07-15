@@ -17,4 +17,35 @@ async function loadDashboardSummary() {
         formatRupiah(summary.total_expense);
 }
 
+const logoutButton = document.getElementById('logout-button');
+
+if (logoutButton) {
+
+    logoutButton.addEventListener('click', logout);
+
+}
+
+async function logout() {
+
+    if (!confirm('Yakin ingin logout?')) {
+        return;
+    }
+
+    try {
+
+        await apiPost(
+            '../api/auth/logout.php',
+            new FormData()
+        );
+
+        window.location.href = 'login.php';
+
+    } catch (error) {
+
+        alert(error.message);
+
+    }
+
+}
+
 loadDashboardSummary();

@@ -2,7 +2,7 @@
 
 class Response
 {
-    public static function success(array $data = [], string $message = ''): array
+    public static function success($data = null, string $message = ''): array
     {
         return [
             'success' => true,

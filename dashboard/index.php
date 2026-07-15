@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 ?>
 
 <!doctype html>
@@ -27,9 +28,31 @@ require_once __DIR__ . '/../bootstrap.php';
 
         <div class="card-body">
 
-            <h2 class="mb-3">
-                🍜 Dashboard Rekap Jajan
-            </h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <h2 class="mb-0">
+                    🍜 Dashboard Rekap Jajan
+                </h2>
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <span class="text-secondary">
+
+                        👤 <?= htmlspecialchars($_SESSION['user']['full_name']) ?>
+
+                    </span>
+
+                    <button
+                        id="logout-button"
+                        class="btn btn-outline-danger">
+
+                        Logout
+
+                    </button>
+
+                </div>
+
+            </div>
 
             <hr>
 
