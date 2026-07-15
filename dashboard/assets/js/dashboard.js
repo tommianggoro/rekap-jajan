@@ -1,3 +1,7 @@
+let searchTimeout = null;
+const logoutButton = document.getElementById('logout-button');
+const searchInput = document.getElementById('search-session');
+
 async function loadDashboardSummary() {
 
     const summary = await apiGet(
@@ -17,12 +21,12 @@ async function loadDashboardSummary() {
         formatRupiah(summary.total_expense);
 }
 
-const logoutButton = document.getElementById('logout-button');
 
 if (logoutButton) {
-
     logoutButton.addEventListener('click', logout);
-
+}
+if (searchInput) {
+    searchInput.addEventListener('input', handleSearch);
 }
 
 async function logout() {
@@ -49,3 +53,15 @@ async function logout() {
 }
 
 loadDashboardSummary();
+
+function handleSearch() {
+
+    clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(() => {
+        console.log('Searching for:', searchInput.value);
+        initDashboard(searchInput.value);
+
+    }, 400);
+
+}

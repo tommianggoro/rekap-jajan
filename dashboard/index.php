@@ -167,6 +167,28 @@ require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
             <h5 class="mt-4">Session Aktif</h5>
 
+            <div class="card shadow-sm mb-3">
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-md-6">
+
+                            <input
+                                type="text"
+                                id="search-session"
+                                class="form-control"
+                                placeholder="🔍 Cari session...">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
             <table class="table table-bordered table-hover align-middle">
 
                 <thead class="table-dark">

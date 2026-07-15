@@ -1,4 +1,4 @@
-async function initDashboard() {
+async function initDashboard(keyword = '') {
 
     try {
 
@@ -9,7 +9,9 @@ async function initDashboard() {
         document.getElementById('status').innerHTML = pingResult.message;
 
         // Ambil session aktif
-        const sessionResponse = await fetch('../api/dashboard/session.php');
+        const sessionResponse = await fetch(
+            `../api/dashboard/session.php?keyword=${encodeURIComponent(keyword)}`
+        );
         const sessionResult = await sessionResponse.json();
 
         const tbody = document.getElementById('session-list');

@@ -12,9 +12,9 @@ class SessionService
         $this->sessionRepository = new SessionRepository($pdo);
     }
 
-    public function getActiveSessions(): array
+    public function getActiveSessions(string $keyword = ''): array
     {
-        $sessions = $this->sessionRepository->getActiveSessions();
+        $sessions = $this->sessionRepository->getActiveSessions($keyword);
 
         return Response::success($sessions);
     }

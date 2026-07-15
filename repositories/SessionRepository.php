@@ -27,7 +27,7 @@ class SessionRepository
         return $stmt->fetchColumn();
     }
 
-    public function getActiveSessions(): array
+    public function getActiveSessions(string $keyword = ''): array
     {
         $stmt = $this->pdo->prepare("
             SELECT
@@ -36,12 +36,13 @@ class SessionRepository
                 created_at,
                 status
             FROM sessions
-            WHERE status = ?
+            WHERE status = ? AND label LIKE ?
             ORDER BY created_at DESC
         ");
 
         $stmt->execute([
-            Constants::SESSION_ACTIVE
+            Constants::SESSION_ACTIVE,
+            "%{$keyword}%"
         ]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
