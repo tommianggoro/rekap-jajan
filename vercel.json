@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/index.php": {
+    "api/webhook.php": {
       "runtime": "vercel-php@0.7.1"
     },
     "api/cron.php": {
@@ -8,8 +8,10 @@
     }
   },
   "routes": [
+    { "src": "/api/webhook.php", "dest": "/api/webhook.php" },
     { "src": "/api/cron.php", "dest": "/api/cron.php" },
-    { "src": "/(.*)", "dest": "/api/index.php" }
+    { "src": "/dashboard/(.*)", "dest": "/dashboard/$1" },
+    { "src": "/$", "status": 301, "headers": { "Location": "/dashboard/" } }
   ],
   "crons": [
     {

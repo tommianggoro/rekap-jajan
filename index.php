@@ -1,4 +1,6 @@
 <?php
+header("Location: /dashboard/");
+exit();
 // index.php
 
 require_once 'config/database.php';

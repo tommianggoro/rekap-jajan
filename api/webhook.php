@@ -1,27 +1,6 @@
 <?php
 // index.php
-
-// --- START BACA FILE .ENV MANUAL ---
-if (file_exists(__DIR__ . '/../.env')) {
-    $lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        // Abaikan jika baris berupa komentar
-        if (strpos(trim($line), '#') === 0) continue;
-        
-        // Pisahkan key dan value berdasarkan tanda sama dengan (=)
-        list($name, $value) = explode('=', $line, 2);
-        $name = trim($name);
-        $value = trim($value);
-        
-        // Masukkan ke getenv(), $_ENV, dan $_SERVER agar bisa dibaca di mana saja
-        putenv("{$name}={$value}");
-        $_ENV[$name] = $value;
-        $_SERVER[$name] = $value;
-    }
-}
-// --- END BACA FILE .ENV MANUAL ---
-
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../functions/telegram.php';
 // Tambahkan ini untuk memastikan $pdo tidak null
 if (!isset($pdo)) {

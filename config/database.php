@@ -2,12 +2,13 @@
 // config/database.php
 
 // Pastikan mengambil variable dari Railway
-$host = getenv('MYSQLHOST');
-$db   = getenv('MYSQLDATABASE');
-$user = getenv('MYSQLUSER');
-$pass = getenv('MYSQLPASSWORD');
-$port = getenv('MYSQLPORT') ?: '3306'; // Default ke 3306 jika kosong
+$host = getenv('MYSQLHOST') ? getenv('MYSQLHOST') : $_ENV['MYSQLHOST'] ?? null;
+$db   = getenv('MYSQLDATABASE') ? getenv('MYSQLDATABASE') : $_ENV['MYSQLDATABASE'] ?? null;
+$user = getenv('MYSQLUSER') ? getenv('MYSQLUSER') : $_ENV['MYSQLUSER'] ?? null;
+$pass = getenv('MYSQLPASSWORD') ? getenv('MYSQLPASSWORD') : $_ENV['MYSQLPASSWORD'] ?? null;
+$port = getenv('MYSQLPORT') ? getenv('MYSQLPORT') : $_ENV['MYSQLPORT'] ?? '3306'; // Default ke 3306 jika kosong
 // Jika $host kosong, PHP akan mencoba mencari socket lokal dan menyebabkan error tersebut
+
 if (!$host) {
     error_log("DATABASE ERROR: Variable MYSQLHOST tidak ditemukan di Environment Variables.");
     exit("Gagal koneksi: Konfigurasi host kosong.");

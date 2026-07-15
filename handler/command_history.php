@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../services/ExpenseService.php';
+require_once __DIR__ . '/../helpers/Formatter.php';
+
 // handler/command_history.php
 // Regex: /history #[label]
 if (preg_match('/\/history(?:\s+#(\w+))?/', $text, $matches)) {
@@ -6,40 +9,37 @@ if (preg_match('/\/history(?:\s+#(\w+))?/', $text, $matches)) {
     $label = $matches[1] ?? 'umum';
     try {
         // Ambil riwayat pengeluaran dari semua sesi dengan label tersebut
-        $stmt = $pdo->prepare("
-            SELECT
-            e.id,
-            e.amount,
-            e.description,
-            e.created_at,
-            m.first_name,
-            s.status
-            FROM `expenses` e
-            JOIN `members` m ON e.paid_by = m.user_id
-            JOIN `sessions` s ON e.session_id = s.id
-            WHERE s.label = ? AND m.chat_id = ? AND s.status = 'Active'
-            ORDER BY e.created_at DESC
-        ");
-        $stmt->execute([$label, $chatId]);
-        $history = $stmt->fetchAll();
-        if (!$history) {
-            sendMessage($chatId, "i️ Belum ada riwayat transaksi untuk label #$label.");
+        $expenseService = new ExpenseService($pdo);
+
+        $result = $expenseService->getHistory($label, $chatId);
+
+        if (!$result['success']) {
+            sendMessage($chatId, "ℹ️ " . $result['message']);
             exit;
         }
-        $totalHistory = 0;
+
+        $history = $result['data']['history'];
+
+        $totalHistory = $result['data']['total'];
+
         $listText = "";
+
         foreach ($history as $row) {
-            $totalHistory += $row['amount'];
-            $date = date('d/m/y', strtotime($row['created_at']));
+
+            $date = Formatter::shortDate($row['created_at']);
             $statusIcon = ($row['status'] == 'Active') ? "🟢" : "⚪";
-            $listText .= "ID Pengeluaran: " . $row['id'] . " $statusIcon [$date] " . $row['first_name'] . ": Rp " .
-            number_format($row['amount'], 0, ',', '.') . " (" . $row['description'] . ")\n";
+
+            $listText .= "$statusIcon ID Pengeluaran: " . $row['id'] . " \n  [$date] " .
+                $row['first_name'] . ": " .
+                Formatter::rupiah($row['amount']) .
+                " (" . $row['description'] . ")\n";
         }
+
         $msg = "📜 *RIWAYAT TRANSAKSI #$label*\n";
         $msg .= "--------------------------------\n";
         $msg .= $listText;
         $msg .= "--------------------------------\n";
-        $msg .= "💰 *Total Akumulasi:* Rp " . number_format($totalHistory, 0, ',', '.') . "\n";
+        $msg .= "💰 *Total Akumulasi:* " . Formatter::rupiah($totalHistory) . "\n";
         $msg .= "\n_Keterangan:_\n🟢 = Sesi Aktif\n⚪ = Sesi Selesai";
         sendMessage($chatId, $msg);
     } catch (Exception $e) {
