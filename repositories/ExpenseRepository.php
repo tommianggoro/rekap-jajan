@@ -133,4 +133,36 @@ class ExpenseRepository
 
         return $summary;
     }
+
+    public function getSpentSummaryByLabel(string $label): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT u.id as user_id, u.first_name, SUM(e.amount) as total_spent 
+            FROM expenses e
+            JOIN sessions s ON e.session_id = s.id
+            JOIN users u ON e.user_id = u.id
+            WHERE s.label = :label
+            GROUP BY u.id, u.first_name
+        ");
+
+        $stmt->execute(['label' => $label]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getHistoryByLabelName(string $label): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT e.*, u.first_name as paid_by 
+            FROM expenses e
+            JOIN sessions s ON e.session_id = s.id
+            JOIN users u ON e.user_id = u.id
+            WHERE s.label = :label
+            ORDER BY e.created_at DESC
+        ");
+
+        $stmt->execute(['label' => $label]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

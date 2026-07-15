@@ -3,7 +3,7 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
 
-$id = (int) ($_GET['id'] ?? 0);
+$label = $_GET['label'] ?? '';
 ?>
 
 <!doctype html>
@@ -23,27 +23,16 @@ $id = (int) ($_GET['id'] ?? 0);
 </head>
 
 <body class="bg-light">
-
     <div class="container py-5">
-
         <div class="card shadow-sm">
-
             <div class="card-body">
-
-                <h3>📋 Detail Session</h3>
+                <h3>📋 Detail Label: <?= $label ?></h3>
 
                 <hr>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-
                     <div>
-
-                        <h2 id="session-label" class="mb-1">
-                            Loading...
-                        </h2>
-
                         <div>
-
                             <span id="session-status" class="badge bg-secondary">
                                 Loading...
                             </span>
@@ -51,11 +40,8 @@ $id = (int) ($_GET['id'] ?? 0);
                             <span class="text-muted ms-2" id="session-created">
                                 Loading...
                             </span>
-
                         </div>
-
                     </div>
-
                     <div>
 
                         <a href="index.php" class="btn btn-outline-secondary">
@@ -268,7 +254,7 @@ $id = (int) ($_GET['id'] ?? 0);
 
     <script>
         window.APP = {
-            sessionId: <?= $id ?>,
+            sessionLabel: '<?= $label ?>',
             apiBase: '../api/dashboard'
         };
     </script>

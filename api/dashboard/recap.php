@@ -13,19 +13,6 @@ require_once __DIR__ . '/../../services/ExpenseService.php';
 
 header('Content-Type: application/json');
 
-$id = (int) ($_GET['id'] ?? 0);
-
-if ($id <= 0) {
-
-    echo json_encode(
-        Response::error('Parameter id wajib diisi.')
-    );
-
-    exit;
-}
-
+$label = trim($_GET['label'] ?? '');
 $expenseService = new ExpenseService($pdo);
-
-echo json_encode(
-    $expenseService->getRecapBySessionId($id)
-);
+echo json_encode($expenseService->getRecapByLabel($label));

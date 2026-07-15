@@ -36,4 +36,15 @@ class SessionService
 
         return Response::success($sessions);
     }
+
+    public function getSessionDetailByLabel(string $label): array
+    {
+        $session = $this->sessionRepository->getSessionDetailByLabel($label);
+
+        if (!$session) {
+            return Response::error('Session tidak ditemukan.');
+        }
+
+        return Response::success($session);
+    }
 }

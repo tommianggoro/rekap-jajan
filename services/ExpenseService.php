@@ -276,4 +276,53 @@ class ExpenseService
 
         return Response::success($summary);
     }
+
+    public function getRecapByLabel(string $label): array
+    {
+        // Mengambil rekap member berdasarkan string label (gabungan dari semua sesi ber-label sama)
+        $members = $this->expenseRepository->getSpentSummaryByLabel($label);
+
+        if (empty($members)) {
+            return Response::success([
+                'total_expense' => 0,
+                'member_count'  => 0,
+                'per_person'    => 0,
+                'members'       => [],
+                'settlements'   => []
+            ]);
+        }
+
+        $totalExpense = 0;
+        foreach ($members as $member) {
+            $totalExpense += $member['total_spent'];
+        }
+
+        $memberCount = count($members);
+        $perPerson = $memberCount > 0 ? $totalExpense / $memberCount : 0;
+        
+        foreach ($members as &$member) {
+            $member['balance'] = (float)$member['total_spent'] - $perPerson;
+            $member['status'] = $member['balance'] >= 0 ? 'creditor' : 'debtor';
+        }
+        unset($member);
+
+        // Kalkulasi pembagian settlement utang-piutang otomatis
+        $settlements = $this->calculateSettlement($members);
+
+        return Response::success([
+            'total_expense' => $totalExpense,
+            'member_count'  => $memberCount,
+            'per_person'    => $perPerson,
+            'members'       => $members,
+            'settlements'   => $settlements
+        ]);
+    }
+
+    public function getHistoryByLabel(string $label): array
+    {
+        // Mengambil semua transaksi dari semua sesi yang bernama label tersebut
+        $history = $this->expenseRepository->getHistoryByLabelName($label);
+
+        return Response::success($history);
+    }
 }

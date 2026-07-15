@@ -29,6 +29,48 @@ if (searchInput) {
     searchInput.addEventListener('input', handleSearch);
 }
 
+async function initDashboard(keyword = '') {
+    const tbody = document.getElementById('session-list');
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center">Loading...</td></tr>`;
+
+    try {
+        // Memanggil API history.php (yang nanti isinya kita ubah untuk return group by label)
+        const groups = await apiGet(`${window.APP.apiBase}/history.php?keyword=${encodeURIComponent(keyword)}`);
+
+        tbody.innerHTML = '';
+
+        if (groups.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center">Tidak ada grup jajan ditemukan.</td></tr>`;
+            return;
+        }
+
+        groups.forEach(group => {
+            const activeBadge = group.active_count > 0 
+                ? `<span class="badge bg-primary">${group.active_count} Sesi</span>` 
+                : `<span class="badge bg-secondary">0</span>`;
+                
+            const closedBadge = group.closed_count > 0 
+                ? `<span class="badge bg-success">${group.closed_count} Sesi</span>` 
+                : `<span class="badge bg-secondary">0</span>`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${group.label}</strong></td>
+                    <td class="text-center">${activeBadge}</td>
+                    <td class="text-center">${closedBadge}</td>
+                    <td class="text-center">
+                        <a href="detail.php?label=${encodeURIComponent(group.label)}" class="btn btn-sm btn-outline-primary">
+                            👁️ Lihat Detail
+                        </a>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Gagal memuat data: ${error.message}</td></tr>`;
+    }
+}
+
 async function logout() {
 
     if (!confirm('Yakin ingin logout?')) {
@@ -53,6 +95,7 @@ async function logout() {
 }
 
 loadDashboardSummary();
+initDashboard();
 
 function handleSearch() {
 

@@ -86,4 +86,52 @@ class SessionRepository
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getSessionDetailByLabel(string $label): array
+    {
+        // Panggil ke repository untuk mengecek status seluruh sesi dengan label tersebut
+        $sessions = $this->getSessionsByLabelName($label);
+
+        if (empty($sessions)) {
+            return Response::error('Session dengan label tersebut tidak ditemukan.');
+        }
+
+        // Tentukan status grup: Jika ada minimal 1 session yang open, maka statusnya 'open'
+        $status = 'Closed';
+        foreach ($sessions as $s) {
+            if ($s['status'] === 'Active') {
+                $status = 'Active';
+                break;
+            }
+        }
+
+        $createdAt = $sessions[0]['created_at'] ?? null;
+        $lastCreatedAt = end($sessions)['created_at'] ?? null;
+
+        return Response::success([
+            'label' => $label,
+            'status' => $status,
+            'created_at' => $createdAt,
+            'last_created_at' => $lastCreatedAt,
+            'total_sessions' => count($sessions)
+        ]);
+    }
+
+    public function getSessionsByLabelName(string $label): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                id,
+                chat_id,
+                label,
+                created_at,
+                status
+            FROM sessions
+            WHERE label = ?
+        ");
+
+        $stmt->execute([$label]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
