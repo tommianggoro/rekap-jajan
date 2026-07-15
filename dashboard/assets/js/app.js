@@ -1,90 +1,43 @@
 async function initDashboard(keyword = '') {
+    const tbody = document.getElementById('session-list');
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center">Loading...</td></tr>`;
 
     try {
-
-        // Cek API
-        const pingResponse = await fetch('../api/dashboard/ping.php');
-        const pingResult = await pingResponse.json();
-
-        document.getElementById('status').innerHTML = pingResult.message;
-
-        // Ambil session aktif
-        const sessionResponse = await fetch(
-            `../api/dashboard/session.php?keyword=${encodeURIComponent(keyword)}`
-        );
-        const sessionResult = await sessionResponse.json();
-
-        const tbody = document.getElementById('session-list');
+        // Memanggil API history.php (yang nanti isinya kita ubah untuk return group by label)
+        const groups = await apiGet(`${window.APP.apiBase}/history.php?keyword=${encodeURIComponent(keyword)}`);
 
         tbody.innerHTML = '';
 
-        if (sessionResult.data.length === 0) {
+        if (groups.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center">Tidak ada grup jajan ditemukan.</td></tr>`;
+            return;
+        }
 
-            tbody.innerHTML = `
+        groups.forEach(group => {
+            const activeBadge = group.active_count > 0 
+                ? `<span class="badge bg-primary">${group.active_count} Sesi</span>` 
+                : `<span class="badge bg-secondary">0</span>`;
+                
+            const closedBadge = group.closed_count > 0 
+                ? `<span class="badge bg-success">${group.closed_count} Sesi</span>` 
+                : `<span class="badge bg-secondary">0</span>`;
+
+            tbody.innerHTML += `
                 <tr>
-                    <td colspan="4" class="text-center">
-                        Tidak ada session aktif.
+                    <td><strong>${group.label}</strong></td>
+                    <td class="text-center">${activeBadge}</td>
+                    <td class="text-center">${closedBadge}</td>
+                    <td class="text-center">
+                        <a href="detail.php?label=${encodeURIComponent(group.label)}" class="btn btn-sm btn-outline-primary">
+                            👁️ Lihat Detail
+                        </a>
                     </td>
                 </tr>
             `;
-
-        } else {
-
-            sessionResult.data.forEach(session => {
-
-                tbody.innerHTML += `
-                    <tr>
-
-                        <td>${session.id}</td>
-
-                        <td>${session.label}</td>
-
-                        <td>
-                            <span class="badge bg-success">
-                                ${session.status}
-                            </span>
-                        </td>
-
-                        <td>${session.created_at}</td>
-
-                        <td>
-
-                            <button
-                                class="btn btn-sm btn-primary btn-detail"
-                                data-id="${session.id}"
-                                data-label="${session.label}">
-
-                                Detail
-
-                            </button>
-
-                        </td>
-
-                    </tr>
-                `;
-
-            });
-
-        }
-
-    } catch (err) {
-
-        console.error(err);
-
-        document.getElementById('status').innerHTML = 'API Error';
-
-    }
-
-    document.querySelectorAll('.btn-detail').forEach(button => {
-
-        button.addEventListener('click', function () {
-
-            window.location.href =
-                'detail.php?id=' +
-                encodeURIComponent(this.dataset.id);
         });
-
-    });
+    } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Gagal memuat data: ${error.message}</td></tr>`;
+    }
 }
 
 function formatRupiah(value) {

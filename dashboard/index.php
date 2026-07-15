@@ -165,60 +165,36 @@ require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 
             <hr>
 
-            <h5 class="mt-4">Session Aktif</h5>
+            <h5 class="mt-4">Label Jajan</h5>
 
             <div class="card shadow-sm mb-3">
-
                 <div class="card-body">
-
                     <div class="row">
-
                         <div class="col-md-6">
-
                             <input
                                 type="text"
                                 id="search-session"
                                 class="form-control"
-                                placeholder="🔍 Cari session...">
-
+                                placeholder="🔍 Cari nama label jajan...">
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
 
             <table class="table table-bordered table-hover align-middle">
-
                 <thead class="table-dark">
-
                     <tr>
-
-                        <th>ID</th>
-                        <th>Label</th>
-                        <th>Status</th>
-                        <th>Dibuat</th>
-                        <th width="120">Aksi</th>
-
+                        <th>Nama Label / Grup</th>
+                        <th class="text-center" width="180">Sesi Aktif</th>
+                        <th class="text-center" width="180">Sesi Selesai</th>
+                        <th class="text-center" width="150">Aksi</th>
                     </tr>
-
                 </thead>
-
                 <tbody id="session-list">
-
                     <tr>
-
-                        <td colspan="4" class="text-center">
-
-                            Loading...
-
-                        </td>
-
+                        <td colspan="4" class="text-center">Loading...</td>
                     </tr>
-
                 </tbody>
-
             </table>
 
         </div>
@@ -235,8 +211,8 @@ window.APP = {
 };
 </script>
 
-<script src="assets/js/app.js"></script>
 <script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
 <script src="assets/js/dashboard.js"></script>
 </body>
 

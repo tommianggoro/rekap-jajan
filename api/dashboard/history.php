@@ -5,25 +5,15 @@ require_once __DIR__ . '/../../bootstrap.php';
 require_once __DIR__ . '/../../helpers/Response.php';
 require_once __DIR__ . '/../../helpers/Constants.php';
 
-require_once __DIR__ . '/../../repositories/ExpenseRepository.php';
-require_once __DIR__ . '/../../services/ExpenseService.php';
+require_once __DIR__ . '/../../repositories/SessionRepository.php';
+require_once __DIR__ . '/../../services/SessionService.php';
 
 header('Content-Type: application/json');
 
-$id = (int) ($_GET['id'] ?? 0);
+$label = $_GET['keyword'] ?? '';
 
-if ($id <= 0) {
-
-    echo json_encode(
-        Response::error('Parameter id wajib diisi.')
-    );
-
-    exit;
-
-}
-
-$expenseService = new ExpenseService($pdo);
+$sessionService = new SessionService($pdo);
 
 echo json_encode(
-    $expenseService->getHistoryBySessionId($id)
+    $sessionService->getAllSessions($label)
 );

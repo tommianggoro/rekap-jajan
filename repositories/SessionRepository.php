@@ -48,6 +48,26 @@ class SessionRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getAllSessions(string $keyword = ''): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                label,
+                SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) AS active_count,
+                SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) AS closed_count
+            FROM sessions
+            WHERE label LIKE :keyword
+            GROUP BY label
+            ORDER BY label ASC;
+        ");
+
+        $stmt->execute([
+            ":keyword" => "%{$keyword}%"
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getSessionById(int $id)
     {
         $stmt = $this->pdo->prepare("

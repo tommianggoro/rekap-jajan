@@ -29,4 +29,11 @@ class SessionService
 
         return Response::success($session);
     }
+
+    public function getAllSessions(string $keyword = ''): array
+    {
+        $sessions = $this->sessionRepository->getAllSessions($keyword);
+
+        return Response::success($sessions);
+    }
 }
