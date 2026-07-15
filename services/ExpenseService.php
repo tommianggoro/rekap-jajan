@@ -322,7 +322,7 @@ class ExpenseService
     {
         // Mengambil semua transaksi dari semua sesi yang bernama label tersebut
         $history = $this->expenseRepository->getHistoryByLabelName($label);
-
+        
         return Response::success($history);
     }
 }

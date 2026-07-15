@@ -3,6 +3,7 @@ const logoutButton = document.getElementById('logout-button');
 const searchInput = document.getElementById('search-session');
 
 async function loadDashboardSummary() {
+    const ping = await apiGet(`${window.APP.apiBase}/ping.php`);
 
     const summary = await apiGet(
         `${window.APP.apiBase}/summary.php`
@@ -19,6 +20,17 @@ async function loadDashboardSummary() {
 
     document.getElementById('total-expense').textContent =
         formatRupiah(summary.total_expense);
+}
+
+async function ping() {
+
+    const response = await fetch(`${window.APP.apiBase}/ping.php`);
+
+    const result = await response.json();
+
+    const statusEl = document.getElementById('status');
+
+    statusEl.innerHTML = result.message;
 }
 
 
@@ -96,6 +108,7 @@ async function logout() {
 
 loadDashboardSummary();
 initDashboard();
+ping();
 
 function handleSearch() {
 

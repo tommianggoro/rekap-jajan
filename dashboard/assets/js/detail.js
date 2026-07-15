@@ -86,17 +86,21 @@ async function loadRecap() {
 }
 
 async function loadHistory() {
-    // Memanggil API history transaksi berdasarkan label
+    // Ubah target file ke history_by_label.php
     const history = await apiGet(
-        `${window.APP.apiBase}/history.php?label=${encodeURIComponent(sessionLabel)}`
+        `${window.APP.apiBase}/history_by_label.php?label=${encodeURIComponent(sessionLabel)}`
     );
 
     const tbody = document.getElementById('history-list');
     tbody.innerHTML = '';
-
-    if (history.length === 0) {
+    // console.log('History data:', response); // Debugging: lihat data history di console
+    if (!history || history.length === 0) {
         tbody.innerHTML = `
-            <tr><td colspan="4" class="text-center">Belum ada transaksi.</td></tr>
+            <tr>
+                <td colspan="4" class="text-center">
+                    Belum ada riwayat transaksi untuk label ini.
+                </td>
+            </tr>
         `;
         return;
     }
@@ -106,8 +110,10 @@ async function loadHistory() {
             <tr>
                 <td>${formatTanggal(item.created_at)}</td>
                 <td>${item.description}</td>
-                <td>${item.paid_by}</td>
-                <td class="text-end">${formatRupiah(item.amount)}</td>
+                <td>${item.paid_by_name}</td>
+                <td class="text-end text-danger fw-bold">
+                    ${formatRupiah(item.amount)}
+                </td>
             </tr>
         `;
     });
