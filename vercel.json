@@ -1,16 +1,20 @@
 {
   "functions": {
-    "api/webhook.php": {
-      "runtime": "vercel-php@0.7.1"
-    },
-    "api/cron.php": {
-      "runtime": "vercel-php@0.7.1"
-    }
+    "api/webhook.php": { "runtime": "vercel-php@0.7.1" },
+    "api/cron.php": { "runtime": "vercel-php@0.7.1" },
+    "api/auth/*.php": { "runtime": "vercel-php@0.7.1" },
+    "api/dashboard/*.php": { "runtime": "vercel-php@0.7.1" }
   },
   "routes": [
     { "src": "/api/webhook.php", "dest": "/api/webhook.php" },
     { "src": "/api/cron.php", "dest": "/api/cron.php" },
-    { "src": "/dashboard/(.*)", "dest": "/dashboard/$1" },
+    
+    { "src": "/api/auth/(.*\\.php)$", "dest": "/api/auth/$1" },
+    { "src": "/api/auth/(.*)", "dest": "/api/auth/$1" },
+
+    { "src": "/dashboard/(.*\\.php)$", "dest": "/api/dashboard/$1" },
+    { "src": "/dashboard/(.*)", "dest": "/api/dashboard/$1" },
+
     { "src": "/(.*)", "status": 301, "headers": { "Location": "/dashboard/" } }
   ],
   "crons": [
