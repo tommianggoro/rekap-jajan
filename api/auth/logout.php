@@ -1,5 +1,5 @@
 <?php
-
+require_once __DIR__ . '/../cors.php';
 require_once __DIR__ . '/../../bootstrap.php';
 
 session_unset();

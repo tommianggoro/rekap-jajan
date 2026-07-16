@@ -1,9 +1,7 @@
 <?php
-
+require_once __DIR__ . '/../cors.php';
 require_once __DIR__ . '/../../bootstrap.php';
-
 require_once __DIR__ . '/../../helpers/Response.php';
-
 require_once __DIR__ . '/../../repositories/UserRepository.php';
 require_once __DIR__ . '/../../services/AuthService.php';
 
