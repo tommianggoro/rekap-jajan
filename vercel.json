@@ -15,6 +15,8 @@
     { "src": "/dashboard/(.*\\.php)$", "dest": "/api/dashboard/$1" },
     { "src": "/dashboard/(.*)", "dest": "/api/dashboard/$1" },
 
+    { "src": "/auth/(.*\\.php)$", "dest": "/api/auth/$1" },
+
     { "src": "/(.*)", "status": 301, "headers": { "Location": "/dashboard/" } }
   ],
   "headers": [
