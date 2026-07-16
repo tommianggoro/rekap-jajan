@@ -5,7 +5,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 // 2. Tentukan domain apa saja yang diizinkan
 $allowed_origins = [
     'http://localhost',
-    'https://rekap-jajan.unaux.com/' 
+    'https://rekap-jajan.unaux.com' 
 ];
 
 // 3. Jika origin cocok, berikan izin secara dinamis
