@@ -49,54 +49,91 @@ class ExpenseService
             return Response::error("Tidak ada sesi aktif untuk label #{$label}.");
         }
 
+        // 1. Tetap ambil ringkasan total bayar per user dari repo untuk keperluan display list atas
         $spentSummary = $this->expenseRepository->getSpentSummary($sessionId, $chatId);
-
         $payments = $this->paymentRepository->getPaymentsBySession($sessionId);
 
-        $totalGroup = 0;
+        // 2. AMBIL SEMUA TRANSAKSI MENTAH DI SESI INI
+        // Pastikan method ini ada di ExpenseRepository kamu (atau jika belum, kamu bisa buat query sederhana)
+        $rawExpenses = $this->expenseRepository->getHistoryBySessionId($sessionId);
 
-        foreach ($spentSummary as $row) {
-            $totalGroup += $row['total_spent'];
-        }
-
-        $memberCount = count($spentSummary);
-
-        $perPerson = $memberCount > 0
-            ? $totalGroup / $memberCount
-            : 0;
-
+        // 3. Inisialisasi struktur balance untuk memetakan nama dan kalkulasi nominal bersih
         $balances = [];
-
         foreach ($spentSummary as $row) {
             $balances[$row['user_id']] = [
                 'name' => $row['first_name'],
-                'amount' => $row['total_spent'] - $perPerson
+                'paid' => 0,      // Total uang yang dikeluarkan orang tersebut
+                'spending' => 0  // Total beban yang harus ditanggung orang tersebut
             ];
         }
 
-        foreach ($payments as $payment) {
+        // Total sesi grup untuk pengeluaran biasa saja (di luar pinjaman)
+        $totalGroup = 0; 
+        $memberCount = count($spentSummary);
 
+        // 4. ALGORITMA SPLIT BILL REAL-TIME
+        foreach ($rawExpenses as $expense) {
+            $amount = (float)$expense['amount'];
+            $paidBy = $expense['paid_by'];
+            $recordedBy = $expense['recorded_by'];
+            $desc = $expense['description'];
+
+            // Tambahkan ke total uang yang dikeluarkan si pembayar
+            if (isset($balances[$paidBy])) {
+                $balances[$paidBy]['paid'] += $amount;
+            }
+
+            // CEK APAKAH INI TRANSAKSI PINJAMAN / UTANG PRIBADI
+            if (strpos($desc, '[Pinjaman]') !== false || strpos($desc, '[Utang]') !== false) {
+                // Beban penuh 100% langsung ditimpakan ke target (recorded_by) tanpa dibagi rata!
+                if (isset($balances[$recordedBy])) {
+                    $balances[$recordedBy]['spending'] += $amount;
+                }
+            } else {
+                // JIKA TRANSAKSI JAJAN BIASA:
+                $totalGroup += $amount; // Masuk ke hitungan total sesi grup
+                
+                // Bagi rata beban ke semua member aktif di sesi ini
+                if ($memberCount > 0) {
+                    $share = $amount / $memberCount;
+                    foreach ($balances as $userId => &$b) {
+                        $b['spending'] += $share;
+                    }
+                    unset($b);
+                }
+            }
+        }
+
+        // Tentukan nilai bagi rata pengeluaran jajan umum per orang
+        $perOrang = $memberCount > 0 ? $totalGroup / $memberCount : 0;
+
+        // 5. HITUNG HITUNGAN BERSIH AKHIR (Paid - Spending)
+        foreach ($balances as $userId => &$b) {
+            $b['amount'] = $b['paid'] - $b['spending'];
+        }
+        unset($b);
+
+        // 6. INTEGRASIKAN DENGAN PEMBAYARAN MANUAL / TRANSFER CICILAN (JIKA ADA)
+        foreach ($payments as $payment) {
             if (isset($balances[$payment['from_user_id']])) {
                 $balances[$payment['from_user_id']]['amount'] += $payment['total_payment'];
             }
-
             if (isset($balances[$payment['to_user_id']])) {
                 $balances[$payment['to_user_id']]['amount'] -= $payment['total_payment'];
             }
         }
 
+        // 7. KLASIFIKASI DEBTOR DAN CREDITOR (UNTUK SETTLEMENT)
         $debtors = [];
         $creditors = [];
 
         foreach ($balances as $balance) {
-
             if ($balance['amount'] < -1) {
                 $debtors[] = [
                     'name' => $balance['name'],
                     'amount' => abs($balance['amount'])
                 ];
             }
-
             if ($balance['amount'] > 1) {
                 $creditors[] = [
                     'name' => $balance['name'],
@@ -105,16 +142,13 @@ class ExpenseService
             }
         }
 
+        // 8. ALGORITMA MATCHING (SIAPA BAYAR KE SIAPA)
         $settlements = [];
-
         foreach ($debtors as &$debtor) {
-
             foreach ($creditors as &$creditor) {
-
                 if ($debtor['amount'] <= 0) {
                     break;
                 }
-
                 if ($creditor['amount'] <= 0) {
                     continue;
                 }
@@ -131,7 +165,6 @@ class ExpenseService
                 $creditor['amount'] -= $transfer;
             }
         }
-
         unset($debtor, $creditor);
 
         return Response::success([
