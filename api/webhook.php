@@ -52,6 +52,10 @@ if (strpos($text, '/join') === 0) {
     require_once __DIR__ . '/../handler/command_help.php';
 } elseif(strpos($text, '/delid') === 0){
     require_once __DIR__ . '/../handler/command_delete_by_id.php';
+} elseif(strpos($text, '/pinjam') === 0){
+    require_once __DIR__ . '/../handler/command_pinjam.php';
+}elseif(strpos($text, '/utang') === 0){
+    require_once __DIR__ . '/../handler/command_utang.php';
 } else {
     // Balas dengan pesan bantuan jika perintah tidak dikenali
     // sendMessage($chatId, "❓ Perintah tidak dikenali. Ketik /help untuk daftar perintah yang tersedia.");
