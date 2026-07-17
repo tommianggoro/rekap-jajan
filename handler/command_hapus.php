@@ -11,7 +11,7 @@ try {
     $oldText = $message['reply_to_message']['text'] ?? '';
     
     // 1. STRATEGI UTAMA: Sesuaikan Regex dengan teks baru "🆔 ID Pengeluaran:"
-    if (preg_match('/🆔 ID Pengeluaran:\s+(\d+)/', $oldText, $idMatches)) {
+    if (preg_match('/🆔 ID (?:Pengeluaran|Transaksi):\s+(\d+)/', $oldText, $idMatches)) {
         $expenseId = $idMatches[1];
 
         // Hapus spesifik berdasarkan ID (Sangat Akurat untuk data baru)
