@@ -27,7 +27,22 @@ try {
         } else {
             sendMessage($chatId, "ℹ️ Transaksi dengan ID $expenseId tidak ditemukan atau sudah dihapus.");
         }
+    } elseif (preg_match('/🆔 ID Pembayaran:\s+(\d+)/', $oldText, $idMatches)) {
+        $paymentId = $idMatches[1];
+        
+        // HAPUS KHUSUS TABEL PAYMENTS
+        $stmt = $pdo->prepare("
+            DELETE FROM `payments` 
+            WHERE `id` = ? 
+            AND `session_id` IN (SELECT id FROM `sessions` WHERE `chat_id` = ?)
+        ");
+        $stmt->execute([$paymentId, $chatId]);
 
+        if ($stmt->rowCount() > 0) {
+            sendMessage($chatId, "🗑️ **Cicilan/Pelunasan Berhasil Dihapus!**\n🆔 ID Pembayaran: $paymentId\n\n_Kalkulasi rekap saldo telah disesuaikan kembali._");
+        } else {
+            sendMessage($chatId, "ℹ️ Data pembayaran tidak ditemukan.");
+        }
     // 2. STRATEGI FALLBACK: Jika tidak ada ID, pakai metode Deskripsi (Untuk data lama sebelum update)
     } else {
         preg_match('/Ket: (.+)/', $oldText, $oldDescMatches);
