@@ -96,7 +96,9 @@ class ExpenseRepository
                 e.description,
                 e.amount,
                 e.created_at,
-                m.first_name AS paid_by
+                e.paid_by,          -- 🟢 Ambil ID aslinya untuk hitungan Engine Service
+                e.recorded_by,      -- 🟢 Tetap ambil ID pencatat/beban
+                m.first_name AS paid_by_name -- 🟢 Nama orangnya diubah aliasnya agar aman
             FROM expenses e
             JOIN members m
                 ON e.paid_by = m.user_id
