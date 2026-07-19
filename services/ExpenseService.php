@@ -41,7 +41,7 @@ class ExpenseService
         );
     }
 
-    public function getRecapData(string $chatId, string $label): array
+    public function getRecapDataOld(string $chatId, string $label): array
     {
         $sessionId = $this->sessionRepository->getActiveSessionId($chatId, $label);
 
@@ -173,7 +173,158 @@ class ExpenseService
             'payments'    => $payments,
             'totalGroup'  => $totalGroup,
             'memberCount' => $memberCount,
-            'perPerson'   => $perPerson,
+            'perPerson'   => $perOrang,
+            'settlements' => $settlements
+        ]);
+    }
+
+    public function getRecapData(string $chatId, string $label): array
+    {
+        $sessionId = $this->sessionRepository->getActiveSessionId($chatId, $label);
+
+        if (!$sessionId) {
+            return Response::error("Tidak ada sesi aktif untuk label #{$label}.");
+        }
+
+        $spentSummary = $this->expenseRepository->getSpentSummary($sessionId, $chatId);
+        $payments = $this->paymentRepository->getPaymentsBySession($sessionId);
+        $rawExpenses = $this->expenseRepository->getHistoryBySessionId($sessionId);
+
+        $balances = [];
+        foreach ($spentSummary as $row) {
+            $balances[$row['user_id']] = [
+                'name' => $row['first_name'],
+                'paid' => 0,      
+                'spending' => 0,
+                'pure_spent' => 0,
+                'loan_details' => [], // 🟢 Tempat menyimpan relasi meminjamkan uang ke siapa saja
+                'debt_details' => []  // 🟢 Tempat menyimpan relasi berutang uang ke siapa saja
+            ];
+        }
+
+        $totalGroup = 0; 
+        $memberCount = count($spentSummary);
+
+        foreach ($rawExpenses as $expense) {
+            $amount = (float)$expense['amount'];
+            $paidBy = $expense['paid_by']; // ID pemberi uang/pinjaman[cite: 3, 4]
+            $recordedBy = $expense['recorded_by']; // ID target/penerima utang[cite: 3, 4]
+            $desc = $expense['description'];
+
+            if (isset($balances[$paidBy])) {
+                $balances[$paidBy]['paid'] += $amount;
+            }
+
+            // KONDISI A: TRANSAKSI PINJAMAN / UTANG PRIBADI (Tanpa pin emoji)
+            if (strpos($desc, '[Pinjaman]') !== false || strpos($desc, '[Utang]') !== false) {
+                if (isset($balances[$recordedBy])) {
+                    $balances[$recordedBy]['spending'] += $amount;
+                    
+                    // Catat detail: Dia berutang ke $paidBy
+                    $lenderName = $balances[$paidBy]['name'] ?? 'User';
+                    if (!isset($balances[$recordedBy]['debt_details'][$lenderName])) {
+                        $balances[$recordedBy]['debt_details'][$lenderName] = 0;
+                    }
+                    $balances[$recordedBy]['debt_details'][$lenderName] += $amount;
+                }
+                
+                if (isset($balances[$paidBy])) {
+                    // Catat detail: Dia meminjamkan uang ke $recordedBy
+                    $borrowerName = $balances[$recordedBy]['name'] ?? 'User';
+                    if (!isset($balances[$paidBy]['loan_details'][$borrowerName])) {
+                        $balances[$paidBy]['loan_details'][$borrowerName] = 0;
+                    }
+                    $balances[$paidBy]['loan_details'][$borrowerName] += $amount;
+                }
+            } else {
+                // KONDISI B: TRANSAKSI JAJAN BIASA
+                $totalGroup += $amount; 
+                if (isset($balances[$paidBy])) {
+                    $balances[$paidBy]['pure_spent'] += $amount;
+                }
+                
+                if ($memberCount > 0) {
+                    $share = $amount / $memberCount;
+                    foreach ($balances as $userId => &$b) {
+                        $b['spending'] += $share;
+                    }
+                    unset($b);
+                }
+            }
+        }
+
+        // Jalankan pengurangan saldo cicilan dari tabel payments (jika ada)
+        foreach ($payments as $payment) {
+            $fromId = $payment['from_user_id'];
+            $toId = $payment['to_user_id'];
+            $payAmount = (float)$payment['total_payment'];
+
+            if (isset($balances[$fromId])) {
+                $balances[$fromId]['amount_payment_adjust'] = ($balances[$fromId]['amount_payment_adjust'] ?? 0) + $payAmount;
+                $balances[$fromId]['paid'] += $payAmount; // Ditambahkan ke paid agar balance akhir impas
+                
+                // Kurangi catatan utang visualnya agar sinkron dengan cicilan yang masuk
+                $toName = $balances[$toId]['name'] ?? '';
+                if (isset($balances[$fromId]['debt_details'][$toName])) {
+                    $balances[$fromId]['debt_details'][$toName] -= $payAmount;
+                }
+            }
+            if (isset($balances[$toId])) {
+                $balances[$toId]['spending'] += $payAmount; // Ditambahkan ke spending agar balance akhir impas
+                
+                // Kurangi catatan piutang visual si penerima cicilan
+                $fromName = $balances[$fromId]['name'] ?? '';
+                if (isset($balances[$toId]['loan_details'][$fromName])) {
+                    $balances[$toId]['loan_details'][$fromName] -= $payAmount;
+                }
+            }
+        }
+
+        $perOrang = $memberCount > 0 ? $totalGroup / $memberCount : 0;
+
+        foreach ($balances as $userId => &$b) {
+            $b['amount'] = $b['paid'] - $b['spending'];
+        }
+        unset($b);
+
+        // Bentuk Spent Summary Baru yang super lengkap
+        $newSpentSummary = [];
+        foreach ($balances as $userId => $b) {
+            $newSpentSummary[] = [
+                'user_id'      => $userId,
+                'first_name'   => $b['name'],
+                'pure_spent'   => $b['pure_spent'],
+                'loan_details' => $b['loan_details'],
+                'debt_details' => $b['debt_details']
+            ];
+        }
+
+        // Logika Debtor/Creditor Settlement (Tetap seperti kode sebelumnya)
+        $debtors = []; $creditors = [];
+        foreach ($balances as $balance) {
+            if ($balance['amount'] < -1) $debtors[] = ['name' => $balance['name'], 'amount' => abs($balance['amount'])];
+            if ($balance['amount'] > 1) $creditors[] = ['name' => $balance['name'], 'amount' => $balance['amount']];
+        }
+
+        $settlements = [];
+        foreach ($debtors as &$debtor) {
+            foreach ($creditors as &$creditor) {
+                if ($debtor['amount'] <= 0) break;
+                if ($creditor['amount'] <= 0) continue;
+                $transfer = min($debtor['amount'], $creditor['amount']);
+                $settlements[] = ['from' => $debtor['name'], 'to' => $creditor['name'], 'amount' => $transfer];
+                $debtor['amount'] -= $transfer; $creditor['amount'] -= $transfer;
+            }
+        }
+        unset($debtor, $creditor);
+
+        return Response::success([
+            'sessionId'   => $sessionId,
+            'spentSummary'=> $newSpentSummary,
+            'payments'    => $payments,
+            'totalGroup'  => $totalGroup,
+            'memberCount' => $memberCount,
+            'perPerson'   => $perOrang,
             'settlements' => $settlements
         ]);
     }

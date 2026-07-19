@@ -32,18 +32,40 @@ if (preg_match('/\/rekap(?:\s+#(\w+))?/', $text, $matches)) {
         $memberCount = $data['memberCount'];
         $perOrang    = $data['perPerson'];
 
-        // 5. Susun Pesan
+        // 5. Susun Pesan (Ubah bagian tampilan list)
         $msg = "📊 *REKAP PENGELUARAN #$label*\n";
         $msg .= "--------------------------------\n";
         foreach ($spentSummary as $row) {
-            if ($row['total_spent'] > 0) {
-                $msg .= "👤 " . $row['first_name'] . ": Rp " . number_format($row['total_spent'], 0, ',', '.') . "\n";
+            $hasLoan = count(array_filter($row['loan_details'])) > 0;
+            $hasDebt = count(array_filter($row['debt_details'])) > 0;
+
+            if ($row['pure_spent'] > 0 || $hasLoan || $hasDebt) {
+                $msg .= "👤 *" . $row['first_name'] . "*\n";
+                
+                // 1. Tampilkan belanja umum grup
+                if ($row['pure_spent'] > 0) {
+                    $msg .= "   ↳ 🛒 Belanja Grup: Rp " . number_format($row['pure_spent'], 0, ',', '.') . "\n";
+                }
+                
+                // 2. Tampilkan detail meminjamkan ke siapa saja
+                foreach ($row['loan_details'] as $targetName => $loanAmt) {
+                    if ($loanAmt > 0) {
+                        $msg .= "   ↳ 💸 Meminjamkan ke $targetName: Rp " . number_format($loanAmt, 0, ',', '.') . "\n";
+                    }
+                }
+                
+                // 3. Tampilkan detail berutang ke siapa saja
+                foreach ($row['debt_details'] as $lenderName => $debtAmt) {
+                    if ($debtAmt > 0) {
+                        $msg .= "   ↳ 📥 Berutang ke $lenderName: Rp " . number_format($debtAmt, 0, ',', '.') . "\n";
+                    }
+                }
             }
         }
         $msg .= "--------------------------------\n";
         $msg .= "👥 *Total Anggota:* $memberCount\n";
-        $msg .= "💰 *Total Sesi:* Rp " . number_format($totalGrup, 0, ',', '.') . "\n";
-        $msg .= "👥 *Bagi Rata:* Rp " . number_format($perOrang, 0, ',', '.') . " / org\n\n";
+        $msg .= "💰 *Total Sesi (Umum):* Rp " . number_format($totalGrup, 0, ',', '.') . "\n";
+        $msg .= "👥 *Bagi Rata Jajan:* Rp " . number_format($perOrang, 0, ',', '.') . " / org\n\n";
 
         $settlementText = "💸 *Sisa Hutang Pelunasan:*\n";
 
